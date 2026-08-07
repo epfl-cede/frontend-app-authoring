@@ -3,16 +3,12 @@ import PropTypes from 'prop-types';
 import { Editor } from '@tinymce/tinymce-react';
 import { getConfig } from '@edx/frontend-platform';
 
-import 'tinymce';
-import 'tinymce/themes/silver';
 import 'tinymce/skins/ui/oxide/skin.css';
-import 'tinymce/icons/default';
-import 'frontend-components-tinymce-advanced-plugins';
 
 import ImageUploadModal from '../ImageUploadModal';
 import SourceCodeModal from '../SourceCodeModal';
 import * as hooks from './hooks';
-import './customTinyMcePlugins/embedIframePlugin';
+import { useTinyMCEBootstrap } from './useTinyMCEBootstrap';
 import { isLibraryV1Key } from '../../../generic/key-utils';
 
 export { prepareEditorRef } from './hooks';
@@ -53,6 +49,12 @@ const TinyMceWidget = ({
   const { isSourceCodeOpen, openSourceCodeModal, closeSourceCodeModal } = hooks.sourceCodeModalToggle(editorRef);
   const { imagesRef } = hooks.useImages({ images, editorContentHtml });
   const imageSelection = hooks.selectedImage(null);
+  const {
+    isReady,
+    apiKey,
+    tinymceScriptSrc,
+    onScriptsLoad,
+  } = useTinyMCEBootstrap();
 
   return (
     <>
@@ -75,28 +77,34 @@ const TinyMceWidget = ({
           editorRef={editorRef}
         />
       )}
-      <Editor
-        id={id}
-        disabled={disabled}
-        onEditorChange={onChange}
-        {
-          // @ts-ignore FIXME: this will have type errors until `editorConfig` gets proper type definitions.
-          ...hooks.editorConfig({
-            openImgModal,
-            openSourceCodeModal,
-            editorType,
-            // @ts-ignore FIXME: 'editorRef' is not an accepted parameter of editorConfig()
-            editorRef,
-            enableImageUpload: isLibraryV1Key(learningContextId) ? false : enableImageUpload,
-            learningContextId,
-            images: imagesRef,
-            editorContentHtml,
-            staticRootUrl,
-            ...imageSelection,
-            ...editorConfig,
-          })
-        }
-      />
+      {isReady && (
+        <Editor
+          id={id}
+          disabled={disabled}
+          onEditorChange={onChange}
+          apiKey={apiKey}
+          tinymceScriptSrc={tinymceScriptSrc}
+          cloudChannel="5"
+          onScriptsLoad={onScriptsLoad}
+          {
+            // @ts-ignore FIXME: this will have type errors until `editorConfig` gets proper type definitions.
+            ...hooks.editorConfig({
+              openImgModal,
+              openSourceCodeModal,
+              editorType,
+              // @ts-ignore FIXME: 'editorRef' is not an accepted parameter of editorConfig()
+              editorRef,
+              enableImageUpload: isLibraryV1Key(learningContextId) ? false : enableImageUpload,
+              learningContextId,
+              images: imagesRef,
+              editorContentHtml,
+              staticRootUrl,
+              ...imageSelection,
+              ...editorConfig,
+            })
+          }
+        />
+      )}
     </>
   );
 };

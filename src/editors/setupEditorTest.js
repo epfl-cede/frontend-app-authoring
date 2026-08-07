@@ -130,3 +130,4 @@ jest.mock('react-redux', () => {
 jest.mock('frontend-components-tinymce-advanced-plugins', () => ({
   a11ycheckerCss: '',
 }));
+jest.mock('frontend-components-tinymce-advanced-plugins/plugins/a11ychecker/css', () => ({ default: '' }));

@@ -6,7 +6,7 @@ import {
 } from 'react';
 import { getConfig } from '@edx/frontend-platform';
 import { getLocale, isRtl } from '@edx/frontend-platform/i18n';
-import { a11ycheckerCss } from 'frontend-components-tinymce-advanced-plugins';
+import a11ycheckerCss from 'frontend-components-tinymce-advanced-plugins/plugins/a11ychecker/css';
 import { isEmpty } from 'lodash';
 import tinyMCEStyles from '../../data/constants/tinyMCEStyles';
 import { StrictDict } from '../../utils';

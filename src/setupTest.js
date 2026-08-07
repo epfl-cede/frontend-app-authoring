@@ -71,3 +71,4 @@ window.ResizeObserver = ResizeObserver;
 
 // Mock the plugins repo so jest will stop complaining about ES6 syntax
 jest.mock('frontend-components-tinymce-advanced-plugins', () => {});
+jest.mock('frontend-components-tinymce-advanced-plugins/plugins/a11ychecker/css', () => ({ default: '' }));

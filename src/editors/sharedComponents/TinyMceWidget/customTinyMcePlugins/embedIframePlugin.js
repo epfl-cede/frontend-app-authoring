@@ -203,10 +203,17 @@ function tinyMCEEmbedIframePlugin(editor) {
   });
 }
 
-((tinymce) => {
+export default tinyMCEEmbedIframePlugin;
+
+/**
+ * Register the embediframe custom plugin with the given TinyMCE instance.
+ *
+ * This is exported as a named function so the widget can register the plugin
+ * after TinyMCE has been bootstrapped (self-hosted or Cloud), instead of
+ * relying on `window.tinymce` being present at module load time.
+ */
+export function registerEmbedIframePlugin(tinymce) {
   if (tinymce) {
     tinymce.PluginManager.add('embediframe', tinyMCEEmbedIframePlugin);
   }
-})(window.tinymce);
-
-export default tinyMCEEmbedIframePlugin;
+}
