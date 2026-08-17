@@ -103,6 +103,11 @@ describe('saveWarningModalToggle', () => {
 });
 
 describe('EditProblemView hooks parseState', () => {
+  // hooks.js no longer statically imports tinymce (it is bootstrapped lazily),
+  // so tests must create the global themselves.
+  beforeEach(() => {
+    window.tinymce = {};
+  });
   describe('fetchEditorContent', () => {
     const getContent = () => '<p>testString</p>';
     test('returns answers', () => {

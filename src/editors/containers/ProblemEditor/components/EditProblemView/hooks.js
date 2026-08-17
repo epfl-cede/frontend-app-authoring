@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import 'tinymce';
 import { StrictDict, convertMarkdownToXml } from '../../../../utils';
 import ReactStateSettingsParser from '../../data/ReactStateSettingsParser';
 import ReactStateOLXParser from '../../data/ReactStateOLXParser';
@@ -22,7 +21,9 @@ export const saveWarningModalToggle = () => {
 
 /** Checks if any tinymce editor in window is dirty */
 export const checkIfEditorsDirty = () => {
-  const EditorsArray = window.tinymce.editors;
+  // TinyMCE is bootstrapped lazily (Cloud or self-hosted); the global may
+  // not exist if no editor has mounted yet.
+  const EditorsArray = window.tinymce?.editors ?? {};
   return Object.entries(EditorsArray).some(([id, editor]) => {
     if (Number.isNaN(parseInt(id, 10))) {
       if (!editor.isNotDirty) {
@@ -35,7 +36,7 @@ export const checkIfEditorsDirty = () => {
 
 export const fetchEditorContent = ({ format }) => {
   const editorObject = { hints: [] };
-  const EditorsArray = window.tinymce.editors;
+  const EditorsArray = window.tinymce?.editors ?? {};
   Object.entries(EditorsArray).forEach(([id, editor]) => {
     if (Number.isNaN(parseInt(id, 10))) {
       if (id.startsWith('answer')) {
