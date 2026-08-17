@@ -134,7 +134,7 @@ describe('TinyMceWidget', () => {
       editorRender(<TinyMceWidget {...props} />);
       await waitFor(() => expect(capturedEditorProps).not.toBeNull());
       expect(capturedEditorProps.apiKey).toBeUndefined();
-      expect(capturedEditorProps.tinymceScriptSrc).toBe('/tinymce-noop.js');
+      expect(capturedEditorProps.tinymceScriptSrc).toBeUndefined();
     });
 
     test('registers the embed-iframe plugin after scripts load in Cloud mode', async () => {
@@ -145,11 +145,13 @@ describe('TinyMceWidget', () => {
       expect(registerEmbedIframePlugin).toHaveBeenCalledWith((window as any).tinymce);
     });
 
-    test('registers the embed-iframe plugin after scripts load in self-hosted mode', async () => {
+    test('registers the embed-iframe plugin during bootstrap in self-hosted mode', async () => {
       getConfig().TINYMCE_API_KEY = undefined;
       editorRender(<TinyMceWidget {...props} />);
+      // In self-hosted mode the tinymce global exists before the Editor
+      // mounts, so onScriptsLoad never fires; registration must already have
+      // happened by the time the Editor is rendered.
       await waitFor(() => expect(capturedEditorProps).not.toBeNull());
-      capturedEditorProps.onScriptsLoad();
       expect(registerEmbedIframePlugin).toHaveBeenCalledWith((window as any).tinymce);
     });
   });

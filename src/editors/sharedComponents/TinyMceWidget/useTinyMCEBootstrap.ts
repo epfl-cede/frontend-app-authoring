@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getConfig } from '@edx/frontend-platform';
-import { createCorrectInternalRoute } from '@src/utils';
 import { registerEmbedIframePlugin } from './customTinyMcePlugins/embedIframePlugin';
+
+/** TinyMCE Cloud release channel used when an API key is configured. */
+export const TINYMCE_CLOUD_CHANNEL = '5';
 
 interface UseTinyMCEBootstrapResult {
   /** True once the chosen TinyMCE runtime bundle is ready to use. */
   isReady: boolean;
   /** TinyMCE Cloud API key, if configured. */
   apiKey: string | undefined;
-  /** Self-hosted placeholder script src; only set in fallback mode. */
-  tinymceScriptSrc: string | undefined;
   /** Callback passed to the Editor to register our custom plugin before init. */
   onScriptsLoad: () => void;
 }
@@ -19,10 +19,13 @@ interface UseTinyMCEBootstrapResult {
  *
  * - If `TINYMCE_API_KEY` is present in the runtime config, TinyMCE is loaded
  *   from TinyMCE Cloud; the custom embed-iframe plugin is registered once the
- *   cloud script has finished loading.
+ *   cloud script has finished loading (`onScriptsLoad`), before the editor
+ *   initialises.
  * - Otherwise, the self-hosted bundle (tinymce core, theme, icons, and the
- *   open-source advanced-plugins stubs) is loaded dynamically; the custom
- *   plugin is registered before the editor initializes.
+ *   open-source advanced-plugins stubs) is loaded dynamically and the custom
+ *   plugin is registered immediately afterwards — in this mode the global
+ *   `tinymce` already exists when the Editor mounts, so `onScriptsLoad`
+ *   never fires and registration must happen here.
  */
 export const useTinyMCEBootstrap = (): UseTinyMCEBootstrapResult => {
   const apiKey = getConfig().TINYMCE_API_KEY || undefined;
@@ -49,12 +52,15 @@ export const useTinyMCEBootstrap = (): UseTinyMCEBootstrapResult => {
       ]);
 
       if (!cancelled) {
+        registerEmbedIframePlugin((window as any).tinymce);
         setIsReady(true);
       }
     };
 
-    loadSelfHosted().catch(() => {
-      // Ignored: the editor simply will not render if the bundle fails to load.
+    loadSelfHosted().catch((error) => {
+      // The editor will not render; make the failure visible in the console.
+      // eslint-disable-next-line no-console
+      console.error('Failed to load the self-hosted TinyMCE bundle', error);
     });
 
     return () => {
@@ -65,7 +71,6 @@ export const useTinyMCEBootstrap = (): UseTinyMCEBootstrapResult => {
   return {
     isReady,
     apiKey,
-    tinymceScriptSrc: apiKey ? undefined : createCorrectInternalRoute('/tinymce-noop.js'),
     onScriptsLoad,
   };
 };

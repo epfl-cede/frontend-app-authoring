@@ -8,7 +8,7 @@ import 'tinymce/skins/ui/oxide/skin.css';
 import ImageUploadModal from '../ImageUploadModal';
 import SourceCodeModal from '../SourceCodeModal';
 import * as hooks from './hooks';
-import { useTinyMCEBootstrap } from './useTinyMCEBootstrap';
+import { TINYMCE_CLOUD_CHANNEL, useTinyMCEBootstrap } from './useTinyMCEBootstrap';
 import { isLibraryV1Key } from '../../../generic/key-utils';
 
 export { prepareEditorRef } from './hooks';
@@ -52,7 +52,6 @@ const TinyMceWidget = ({
   const {
     isReady,
     apiKey,
-    tinymceScriptSrc,
     onScriptsLoad,
   } = useTinyMCEBootstrap();
 
@@ -83,8 +82,7 @@ const TinyMceWidget = ({
           disabled={disabled}
           onEditorChange={onChange}
           apiKey={apiKey}
-          tinymceScriptSrc={tinymceScriptSrc}
-          cloudChannel="5"
+          cloudChannel={TINYMCE_CLOUD_CHANNEL}
           onScriptsLoad={onScriptsLoad}
           {
             // @ts-ignore FIXME: this will have type errors until `editorConfig` gets proper type definitions.
