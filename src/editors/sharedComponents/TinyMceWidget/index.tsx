@@ -7,12 +7,14 @@ import 'tinymce';
 import 'tinymce/themes/silver';
 import 'tinymce/skins/ui/oxide/skin.css';
 import 'tinymce/icons/default';
+import 'tinymce/plugins/paste';
 import 'frontend-components-tinymce-advanced-plugins';
 
 import ImageUploadModal from '../ImageUploadModal';
 import SourceCodeModal from '../SourceCodeModal';
 import * as hooks from './hooks';
 import './customTinyMcePlugins/embedIframePlugin';
+import './customTinyMcePlugins/pasteCleanPlugin';
 import { isLibraryV1Key } from '../../../generic/key-utils';
 
 export { prepareEditorRef } from './hooks';

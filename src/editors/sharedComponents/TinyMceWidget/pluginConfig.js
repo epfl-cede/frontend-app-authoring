@@ -1,3 +1,4 @@
+import { getConfig } from '@edx/frontend-platform';
 import { StrictDict } from '../../utils';
 import { buttons, plugins } from '../../data/constants/tinyMCE';
 
@@ -17,6 +18,10 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
   const autoresizeBottomMargin = editorType === 'expandable' ? 10 : 50;
   const defaultFormat = (editorType === 'question' || editorType === 'expandable') ? 'div' : 'p';
   const hasStudioHeader = document.querySelector('.studio-header');
+  // Paste cleanup (custom `pasteclean` plugin) is enabled by default and can
+  // be turned off per deployment with the MFE config flag
+  // ENABLE_PASTE_CLEANUP: 'false'.
+  const pasteCleanEnabled = getConfig().ENABLE_PASTE_CLEANUP !== 'false';
 
   return (
     StrictDict({
@@ -33,8 +38,8 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
         image,
         imageTools,
         quickToolbar,
-        plugins.a11ychecker,
-        plugins.powerpaste,
+        plugins.paste,
+        pasteCleanEnabled ? plugins.pasteclean : '',
         plugins.embediframe,
       ].join(' '),
       menubar: false,
@@ -58,7 +63,7 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
           ],
           [imageUploadButton, buttons.link, buttons.unlink, buttons.blockQuote, buttons.codeBlock],
           [buttons.table, buttons.emoticons, buttons.charmap, buttons.hr],
-          [buttons.removeFormat, codeButton, buttons.a11ycheck, buttons.embediframe],
+          [buttons.removeFormat, codeButton, buttons.embediframe],
         ]) :
         false,
       imageToolbar: mapToolbars([
@@ -81,7 +86,7 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
           buttons.numlist,
         ],
         [imageUploadButton, buttons.blockQuote, buttons.codeBlock],
-        [buttons.table, buttons.emoticons, buttons.charmap, buttons.removeFormat, buttons.a11ycheck],
+        [buttons.table, buttons.emoticons, buttons.charmap, buttons.removeFormat],
       ]),
       config: {
         branding: false,
@@ -97,10 +102,12 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
         block_formats:
           'Header 1=h1;Header 2=h2;Header 3=h3;Header 4=h4;Header 5=h5;Header 6=h6;Div=div;Paragraph=p;Preformatted=pre',
         forced_root_block: defaultFormat,
-        powerpaste_allow_local_images: true,
-        powerpaste_word_import: 'prompt',
-        powerpaste_html_import: 'prompt',
-        powerpaste_googledoc_import: 'prompt',
+        // The stub `powerpaste` plugin is replaced by the core `paste`
+        // plugin plus our custom `pasteclean` plugin, which strips pasted
+        // inline styles except a whitelist (default: text-decoration).
+        // While pasteclean handles style cleanup, disable the built-in
+        // WebKit-only style stripper.
+        paste_remove_styles_if_webkit: !pasteCleanEnabled,
         autoresize_bottom_margin: autoresizeBottomMargin,
       },
     })

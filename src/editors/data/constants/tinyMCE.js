@@ -52,7 +52,6 @@ export const buttons = StrictDict({
   table: 'table',
   undo: 'undo',
   underline: 'underline',
-  a11ycheck: 'a11ycheck',
   embediframe: 'embediframe',
 });
 
@@ -69,8 +68,8 @@ export const plugins = listKeyStore([
   'image',
   'imagetools',
   'quickbars',
-  'a11ychecker',
-  'powerpaste',
+  'paste',
+  'pasteclean',
   'embediframe',
 ]);
 

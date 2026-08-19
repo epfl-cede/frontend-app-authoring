@@ -6,7 +6,6 @@ import {
 } from 'react';
 import { getConfig } from '@edx/frontend-platform';
 import { getLocale, isRtl } from '@edx/frontend-platform/i18n';
-import { a11ycheckerCss } from 'frontend-components-tinymce-advanced-plugins';
 import { isEmpty } from 'lodash';
 import tinyMCEStyles from '../../data/constants/tinyMCEStyles';
 import { StrictDict } from '../../utils';
@@ -460,7 +459,7 @@ export const editorConfig = ({
       ...config,
       skin: false,
       content_css: false,
-      content_style: tinyMCEStyles + a11ycheckerCss,
+      content_style: tinyMCEStyles,
       min_height: minHeight,
       max_height: maxHeight,
       contextmenu: 'link table',
