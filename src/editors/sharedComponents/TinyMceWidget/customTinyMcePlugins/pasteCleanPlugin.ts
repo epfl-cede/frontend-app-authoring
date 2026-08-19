@@ -16,6 +16,12 @@
  * those spans are dead weight, and removing them matches the output of
  * PowerPaste's "Remove Formatting" mode.
  *
+ * Finally, empty inline formatting elements (e.g. `<b></b>`, `<i></i>`)
+ * are removed. WebKit/Word paste often leaves behind empty formatting tags
+ * (for instance a trailing `<i></i>` after every pasted `<i>` run); they
+ * are dead weight once the styles are gone. Block elements and elements
+ * that still contain whitespace or other nodes are left untouched.
+ *
  * Only external pastes are cleaned: content copied inside the editor
  * (`e.internal`) is left untouched so that formatting created with the
  * editor itself (e.g. text color via `forecolor`) survives copy/paste.
@@ -85,6 +91,36 @@ function tinyMCEPasteCleanPlugin(editor: Editor): void {
       }
       parent.removeChild(span);
     });
+
+    // Remove empty inline formatting elements (e.g. `<b></b>`, `<i></i>`).
+    // Re-querying in a loop is required because removing an inner empty tag
+    // can leave its parent empty; each pass removes at least one node, so
+    // the loop always terminates. Whitespace-only elements are kept.
+    const emptyFormattingTags = [
+      'b',
+      'strong',
+      'i',
+      'em',
+      'u',
+      's',
+      'strike',
+      'del',
+      'ins',
+      'mark',
+      'sub',
+      'sup',
+      'font',
+    ];
+    let removedEmptyTag: boolean;
+    do {
+      removedEmptyTag = false;
+      container.querySelectorAll(emptyFormattingTags.join(',')).forEach((element) => {
+        if (element.childNodes.length === 0 && element.parentNode) {
+          element.parentNode.removeChild(element);
+          removedEmptyTag = true;
+        }
+      });
+    } while (removedEmptyTag);
 
     e.content = container.innerHTML;
   });

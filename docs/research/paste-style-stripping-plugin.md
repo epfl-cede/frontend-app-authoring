@@ -23,7 +23,7 @@ Desired output:
 
 ```html
 <p class="p1"><span class="s1" style="text-decoration: line-through;">asdasd</span></p>
-<p class="p1"><i>asdasd</i><i></i></p>
+<p class="p1"><i>asdasd</i></p>
 <p class="p1"><b>asdas dad a</b></p>
 ```
 
@@ -32,7 +32,7 @@ Key observations:
 - `class` attributes (`p1`, `s1`) are kept.
 - The noisy `style` block on `<p>` is fully stripped.
 - `style="text-decoration: line-through;"` on `<span>` is kept.
-- Semantic tags (`<i>`, `<b>`) and empty inline tags are preserved.
+- Semantic tags (`<i>`, `<b>`) are preserved; empty inline formatting tags (e.g. the trailing `<i></i>` WebKit leaves after a pasted `<i>` run) are removed.
 
 This means the rule must be a **whitelist of retained CSS properties**, not "strip every `style` attribute".
 
@@ -109,7 +109,7 @@ The repo already has a pattern for runtime-registered custom plugins:
 
 ### 3.1 Plugin source (as shipped)
 
-Create `src/editors/sharedComponents/TinyMceWidget/customTinyMcePlugins/pasteCleanPlugin.ts`. The committed implementation deviates from the earlier `DomParser`/`Serializer` draft in three deliberate ways (see §3.2): it parses the pasted string into a plain DOM `div` and walks it with `querySelectorAll`, it skips internal pastes rather than honouring `isDefaultPrevented()`, and it unwraps attribute-less spans. It also self-registers against the global `tinymce` (mirroring `embedIframePlugin.js`) instead of exporting a `registerPasteCleanPlugin` helper.
+Create `src/editors/sharedComponents/TinyMceWidget/customTinyMcePlugins/pasteCleanPlugin.ts`. The committed implementation deviates from the earlier `DomParser`/`Serializer` draft in four deliberate ways (see §3.2): it parses the pasted string into a plain DOM `div` and walks it with `querySelectorAll`, it skips internal pastes rather than honouring `isDefaultPrevented()`, and it unwraps attribute-less spans and removes empty inline formatting tags. It also self-registers against the global `tinymce` (mirroring `embedIframePlugin.js`) instead of exporting a `registerPasteCleanPlugin` helper.
 
 ```ts
 import tinymce, { Editor } from 'tinymce';
@@ -173,6 +173,22 @@ function tinyMCEPasteCleanPlugin(editor: Editor): void {
       parent.removeChild(span);
     });
 
+    // Remove empty inline formatting elements (e.g. `<b></b>`, `<i></i>`).
+    // Re-querying in a loop is required because removing an inner empty tag
+    // can leave its parent empty; each pass removes at least one node, so
+    // the loop always terminates. Whitespace-only elements are kept.
+    const emptyFormattingTags = ['b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del', 'ins', 'mark', 'sub', 'sup', 'font'];
+    let removedEmptyTag: boolean;
+    do {
+      removedEmptyTag = false;
+      container.querySelectorAll(emptyFormattingTags.join(',')).forEach((element) => {
+        if (element.childNodes.length === 0 && element.parentNode) {
+          element.parentNode.removeChild(element);
+          removedEmptyTag = true;
+        }
+      });
+    } while (removedEmptyTag);
+
     e.content = container.innerHTML;
   });
 }
@@ -194,6 +210,7 @@ Notes on the specific choices:
 - `e.internal || !e.content` — skips content copied _inside_ the editor (internal paste), so formatting created with the editor (e.g. `forecolor`) survives copy/paste. This is intentionally different from the earlier draft's `e.isDefaultPrevented()` guard.
 - `getParam('pasteclean_allowed_styles', 'text-decoration')` — same whitelist surface as the draft, but read once at plugin init and applied property-by-property via `style.setProperty(property, value, priority)`.
 - **Span unwrapping** — after style cleanup, `<span>`s left with no attributes are replaced by their children (Google Docs/Word styling spans). `querySelectorAll` returns a static list in document order, so one pass unwraps outer spans before nested ones; spans that still carry other attributes are skipped in place so the loop can't spin.
+- **Empty-tag removal** — after span unwrapping, inline formatting elements (`b`, `strong`, `i`, `em`, `u`, `s`, `strike`, `del`, `ins`, `mark`, `sub`, `sup`, `font`) that have no child nodes at all are removed. WebKit/Word paste often leaves a trailing empty `<i></i>` after each pasted `<i>` run. Re-querying in a loop is required because removing an inner empty tag can leave its parent empty; each pass removes at least one node, so the loop terminates. Elements that still contain whitespace or other nodes are kept (e.g. `<b> </b>` survives).
 - **Self-registration** — `tinymce.PluginManager.add('pasteclean', ...)` at module scope, mirroring `embedIframePlugin.js`. The side-effect import in `index.tsx` runs it in self-hosted mode.
 
 This runs on the **pasted string only**, does not require iframe access, and does not alter content already in the editor.
@@ -328,10 +345,10 @@ Therefore:
 
 | File                                                                                  | Change                                                                                                                                                            |
 | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/editors/sharedComponents/TinyMceWidget/customTinyMcePlugins/pasteCleanPlugin.js` | **New** custom plugin that whitelists retained `style` properties on `PastePreProcess`.                                                                           |
+| `src/editors/sharedComponents/TinyMceWidget/customTinyMcePlugins/pasteCleanPlugin.js` | **New** custom plugin that whitelists retained `style` properties on `PastePreProcess`, unwraps attribute-less spans, and removes empty inline formatting tags.                                                                           |
 | `src/editors/sharedComponents/TinyMceWidget/index.tsx`                                | Import `pasteclean` for its side effect (registration), alongside `embedIframePlugin`.                                                                            |
 | `src/editors/sharedComponents/TinyMceWidget/pluginConfig.js`                          | Replace `a11ychecker`/`powerpaste` with `paste`/`pasteclean`; drop `powerpaste_*`; set `paste_remove_styles_if_webkit: false`; remove `a11ycheck` toolbar button. |
 | `src/editors/data/constants/tinyMCE.js`                                               | Add `paste` and `pasteclean` to the plugin name store; remove the `a11ychecker` plugin name and the `a11ycheck` button constant.                                  |
 | `src/editors/sharedComponents/TinyMceWidget/hooks.ts`                                 | Remove the dead `a11ycheckerCss` import and concatenation.                                                                                                        |
 
-This gives a free-API-key-friendly paste cleanup that preserves `class`, keeps `text-decoration: line-through` on `<span>`, strips Apple/WebKit font noise from `<p>`, and leaves `<i>`/`<b>` intact.
+This gives a free-API-key-friendly paste cleanup that preserves `class`, keeps `text-decoration: line-through` on `<span>`, strips Apple/WebKit font noise from `<p>`, removes empty inline formatting tags left behind by WebKit/Word paste, and leaves non-empty `<i>`/`<b>` intact.

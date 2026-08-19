@@ -186,4 +186,44 @@ describe('TinyMCE Paste Clean Plugin', () => {
 
     expect(event.content).toEqual('<p><strong>plain</strong></p>');
   });
+
+  it('removes empty inline formatting tags such as <b></b>', () => {
+    const { editor, firePastePreProcess } = createEditorMock();
+    tinyMCEPasteCleanPlugin(editor);
+
+    const event = { content: '<p><b>bold</b><b></b></p>', internal: false };
+    firePastePreProcess(event);
+
+    expect(event.content).toEqual('<p><b>bold</b></p>');
+  });
+
+  it('removes empty <i></i> left by WebKit paste', () => {
+    const { editor, firePastePreProcess } = createEditorMock();
+    tinyMCEPasteCleanPlugin(editor);
+
+    const event = { content: '<p><i>asdasd</i><i></i></p>', internal: false };
+    firePastePreProcess(event);
+
+    expect(event.content).toEqual('<p><i>asdasd</i></p>');
+  });
+
+  it('removes nested empty tags in a bounded pass', () => {
+    const { editor, firePastePreProcess } = createEditorMock();
+    tinyMCEPasteCleanPlugin(editor);
+
+    const event = { content: '<p><b><i></i></b>text</p>', internal: false };
+    firePastePreProcess(event);
+
+    expect(event.content).toEqual('<p>text</p>');
+  });
+
+  it('keeps whitespace-only formatting elements and non-empty tags', () => {
+    const { editor, firePastePreProcess } = createEditorMock();
+    tinyMCEPasteCleanPlugin(editor);
+
+    const event = { content: '<p><b> </b><i>text</i></p>', internal: false };
+    firePastePreProcess(event);
+
+    expect(event.content).toEqual('<p><b> </b><i>text</i></p>');
+  });
 });
