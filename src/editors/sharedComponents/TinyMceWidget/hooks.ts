@@ -450,6 +450,11 @@ export const editorConfig = ({
   return {
     onInit: (_evt, editor) => {
       setEditorRef(editor);
+      // Open the editor in fullscreen mode by default (no toolbar button).
+      // Skipped for inline 'expandable' editors, where fullscreen makes no sense.
+      if (editorType !== 'expandable') {
+        editor.execCommand('mceFullScreen');
+      }
       if (editorType === 'text') {
         initializeEditor();
       }

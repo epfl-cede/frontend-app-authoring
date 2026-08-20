@@ -272,7 +272,7 @@ describe('TinyMceEditor hooks', () => {
         learningContextId: 'course+org+run',
       };
       const evt = 'fakeEvent';
-      const editor = 'myEditor';
+      const editor = { execCommand: jest.fn() };
       const setupCustomBehavior = args => ({ setupCustomBehavior: args });
 
       beforeEach(() => {
@@ -368,6 +368,15 @@ describe('TinyMceEditor hooks', () => {
         output.onInit(evt, editor);
         expect(props.setEditorRef).toHaveBeenCalledWith(editor);
         expect(props.initializeEditor).toHaveBeenCalled();
+      });
+      test('onInit opens the editor in fullscreen by default', () => {
+        output.onInit(evt, editor);
+        expect(editor.execCommand).toHaveBeenCalledWith('mceFullScreen');
+      });
+      test('onInit does not open expandable editors in fullscreen', () => {
+        output = module.editorConfig({ ...props, editorType: 'expandable' });
+        output.onInit(evt, editor);
+        expect(editor.execCommand).not.toHaveBeenCalled();
       });
       test('It sets the blockvalue to be empty string by default', () => {
         expect(output.initialValue).toBe('');
