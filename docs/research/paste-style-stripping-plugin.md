@@ -177,7 +177,21 @@ function tinyMCEPasteCleanPlugin(editor: Editor): void {
     // Re-querying in a loop is required because removing an inner empty tag
     // can leave its parent empty; each pass removes at least one node, so
     // the loop always terminates. Whitespace-only elements are kept.
-    const emptyFormattingTags = ['b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del', 'ins', 'mark', 'sub', 'sup', 'font'];
+    const emptyFormattingTags = [
+      'b',
+      'strong',
+      'i',
+      'em',
+      'u',
+      's',
+      'strike',
+      'del',
+      'ins',
+      'mark',
+      'sub',
+      'sup',
+      'font',
+    ];
     let removedEmptyTag: boolean;
     do {
       removedEmptyTag = false;
@@ -345,7 +359,7 @@ Therefore:
 
 | File                                                                                  | Change                                                                                                                                                            |
 | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/editors/sharedComponents/TinyMceWidget/customTinyMcePlugins/pasteCleanPlugin.js` | **New** custom plugin that whitelists retained `style` properties on `PastePreProcess`, unwraps attribute-less spans, and removes empty inline formatting tags.                                                                           |
+| `src/editors/sharedComponents/TinyMceWidget/customTinyMcePlugins/pasteCleanPlugin.js` | **New** custom plugin that whitelists retained `style` properties on `PastePreProcess`, unwraps attribute-less spans, and removes empty inline formatting tags.   |
 | `src/editors/sharedComponents/TinyMceWidget/index.tsx`                                | Import `pasteclean` for its side effect (registration), alongside `embedIframePlugin`.                                                                            |
 | `src/editors/sharedComponents/TinyMceWidget/pluginConfig.js`                          | Replace `a11ychecker`/`powerpaste` with `paste`/`pasteclean`; drop `powerpaste_*`; set `paste_remove_styles_if_webkit: false`; remove `a11ycheck` toolbar button. |
 | `src/editors/data/constants/tinyMCE.js`                                               | Add `paste` and `pasteclean` to the plugin name store; remove the `a11ychecker` plugin name and the `a11ycheck` button constant.                                  |
