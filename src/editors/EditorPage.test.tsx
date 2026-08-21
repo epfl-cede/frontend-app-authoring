@@ -61,8 +61,9 @@ describe('EditorPage', () => {
 
     const modalElement = screen.getByRole('dialog');
     expect(modalElement.classList).toContain('pgn__modal');
-    expect(modalElement.classList).toContain('pgn__modal-xl');
-    expect(modalElement.classList).not.toContain('pgn__modal-fullscreen');
+    // Editors open in fullscreen mode by default; the user can toggle back to 'xl' size.
+    expect(modalElement.classList).toContain('pgn__modal-fullscreen');
+    expect(modalElement.classList).not.toContain('pgn__modal-xl');
   });
 
   test('it shows the Advanced Editor if there is no corresponding editor', async () => {

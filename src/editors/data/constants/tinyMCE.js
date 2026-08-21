@@ -71,7 +71,6 @@ export const plugins = listKeyStore([
   'paste',
   'pasteclean',
   'embediframe',
-  'fullscreen',
 ]);
 
 export const textToSpeechIcon =

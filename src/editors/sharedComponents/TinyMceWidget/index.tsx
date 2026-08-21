@@ -8,7 +8,6 @@ import 'tinymce/themes/silver';
 import 'tinymce/skins/ui/oxide/skin.css';
 import 'tinymce/icons/default';
 import 'tinymce/plugins/paste';
-import 'tinymce/plugins/fullscreen';
 import 'frontend-components-tinymce-advanced-plugins';
 
 import ImageUploadModal from '../ImageUploadModal';

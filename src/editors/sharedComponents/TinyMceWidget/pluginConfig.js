@@ -41,7 +41,6 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
         plugins.paste,
         pasteCleanEnabled ? plugins.pasteclean : '',
         plugins.embediframe,
-        plugins.fullscreen,
       ].join(' '),
       menubar: false,
       toolbar: toolbar ?

@@ -64,7 +64,6 @@ const TextEditor = ({
         editorContentHtml={editorContent}
         setEditorRef={setEditorRef}
         minHeight={500}
-        maxHeight={500}
         initializeEditor={initializeEditor}
         {...{
           images,
